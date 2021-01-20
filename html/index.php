@@ -1,10 +1,10 @@
 <?php
 $page_name = "Home";
-include("header.php");
+include("../include/header.php");
 ?>
 
 <p>Welcome to Trevor's Cave (Under Construction)</p>
 
 <?php
-include("footer.php");
+include("../include/footer.php");
 ?>
