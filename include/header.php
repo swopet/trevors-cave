@@ -6,7 +6,7 @@ $title = "Trevor's Cave - " . $page_name;
     include "nav_bar.php";
 ?>
 <head>
-    <link rel="stylesheet" href="/include/styles.css">
+    <link rel="stylesheet" href="$_SERVER['DOCUMENT_ROOT']./include/styles.css">
 <title><?php echo $title; ?></title>
 </head>
 <body>
