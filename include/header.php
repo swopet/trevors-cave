@@ -1,5 +1,5 @@
 <?php
-$title = "Trevor's Cave" . $page_name;
+$title = "Trevor's Cave - " . $page_name;
 include_once($_SERVER['DOCUMENT_ROOT']."/../include/nav_bar.php")
 ?>
 <html>
