@@ -1,3 +1,3 @@
-<p>Copyright Trevor Swope, 2019</p>
+<p>© Trevor Swope, 2020-2021</p>
 </body>
 </html>
