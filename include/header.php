@@ -1,16 +1,8 @@
 <?php
-$title = "Trevor's Cave - " . $page_name;
+$title = "Trevor's Cave" . $page_name;
 ?>
 <html>
-<?php
-    include($_SERVER['DOCUMENT_ROOT']."/include/nav_bar.php");
-?>
 <head>
-<!--
-    <?php
-        echo "<link rel=\"stylesheet\" href=".$_SERVER['DOCUMENT_ROOT']."/include/styles.css">;
-    ?>
--->
 <title><?php echo $title; ?></title>
 </head>
 <body>
