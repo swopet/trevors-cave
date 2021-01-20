@@ -1,6 +1,7 @@
 <?php
 $page_name = "Home";
-echo $_SERVER['DOCUMENT_ROOT'];
+$header = $_SERVER['DOCUMENT_ROOT']."/include/header.php";
+echo $header;
 include_once($_SERVER['DOCUMENT_ROOT']."/include/header.php");
 ?>
 
