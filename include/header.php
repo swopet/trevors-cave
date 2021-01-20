@@ -3,7 +3,7 @@ $title = "Trevor's Cave - " . $page_name;
 ?>
 <html>
 <?php
-    include($_SERVER['DOCUMENT_ROOT']."nav_bar.php");
+    include($_SERVER['DOCUMENT_ROOT']."/include/nav_bar.php");
 ?>
 <head>
 <!--
