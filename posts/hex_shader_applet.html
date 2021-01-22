@@ -4,7 +4,7 @@
 </body>
 </div>
 
-<div><input type="file" id="file-selector" accept=".jpg, .jpeg, .png"></div>
+<div><input type="file" id="file-selector" accept=".jpg, .jpeg, .png"><p id="widthxheight"></p></div>
 <div>
     <p>Minimum side length</p>
     <input type="range" min="1" max="1000" class="slider" id="minSizeInput" >
@@ -42,9 +42,22 @@
     </select>
 </div>
 <div>
+    <label for="control">Greyscale Calc</label>
+    <select name="control" id="control">
+        <option value=0>Luminance</option>
+        <option value=1>Brightness</option>
+    </select>
+</div>
+<div>
     <p>Invert greyscale input?
     <input type="checkbox" id="invert"></input>
     </p>
+</div>
+<div>
+    <p>Refresh continually?
+    <input type="checkbox" id="refreshToggle"></input>
+    </p>
+    <button id="refreshButton">Refresh</button>
 </div>
 <div>
     <button onclick="resetToDefaults()">Reset to Defaults</button>
@@ -82,6 +95,7 @@ uniform float lineWidth;
 uniform float lineFade;
 uniform int color0;
 uniform int color1;
+uniform int control;
 uniform int invert;
 // our texture
 uniform sampler2D u_image;
@@ -237,7 +251,9 @@ float getValue(vec2 p, float greyscale) {
 void main() {
    // Look up a color from the texture.
    vec4 source_color = texture2D(u_image, v_texCoord);
-   float greyscale = dot(source_color.xyz,vec3(0.22,0.71,0.07));
+   float luminance = dot(source_color.xyz,vec3(0.22,0.71,0.07));
+   float brightness = dot(source_color.xyz,vec3(0.3333,0.3333,0.3333));
+   float greyscale = (control==0) ? luminance: brightness;
    vec2 p = v_texCoord * iResolution;
    
    

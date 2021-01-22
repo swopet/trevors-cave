@@ -35,11 +35,14 @@ class SliderInput{
 
 const minSize = new SliderInput("minSize",1.0,10.0);
 const steps = new SliderInput("steps",7);
-const lineWidth = new SliderInput("lineWidth",1.0,5.0);
+const lineWidth = new SliderInput("lineWidth",2.0,5.0);
 const lineFade = new SliderInput("lineFade",1.0,5.0);
 const color0 = document.getElementById("color0");
 const color1 = document.getElementById("color1");
+const control = document.getElementById("control");
 const invert = document.getElementById("invert");
+const refreshToggle = document.getElementById("refreshToggle");
+const refreshButton = document.getElementById("refreshButton");
 
 var user_image_tex = null;
 // Initialize the GL context
@@ -54,6 +57,7 @@ function resetToDefaults() {
     lineFade.reset();
     color0.value = 0;
     color1.value = 1;
+    control.value = 0;
     invert.checked = false;
 }
 
@@ -78,8 +82,8 @@ function loadSourceTexture(gl, url) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
                   srcFormat, srcType, user_image);
-    canvas.width = Math.min(1080,user_image.width);
-    canvas.height = user_image.height * canvas.width / user_image.width;
+    canvas.width = user_image.width;
+    canvas.height = user_image.height;
     // WebGL1 has different requirements for power of 2 images
     // vs non power of 2 images so check if the image is a
     // power of 2 in both dimensions.
@@ -93,6 +97,8 @@ function loadSourceTexture(gl, url) {
        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     }
+    document.getElementById("widthxheight").innerHTML = String(user_image.width).concat("x").concat(String(user_image.height));
+    requestAnimationFrame(draw);
   };
   user_image.src = url;
 
@@ -113,6 +119,7 @@ function draw() {
       if (user_image_tex === null){
           if (user_image.src !== ''){
               user_image_tex = loadSourceTexture(gl,user_image.src);
+              return;
           }
       }
       else {
@@ -151,6 +158,7 @@ function draw() {
           var lineFadeLocation = gl.getUniformLocation(program, "lineFade");
           var color0Location = gl.getUniformLocation(program, "color0");
           var color1Location = gl.getUniformLocation(program, "color1");
+          var controlLocation = gl.getUniformLocation(program, "control");
           var invertLocation = gl.getUniformLocation(program, "invert");
           // Tell WebGL how to convert from clip space to pixels
           gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -199,9 +207,10 @@ function draw() {
           //set the line width and line fade
           gl.uniform1f(lineWidthLocation, lineWidth.value);
           gl.uniform1f(lineFadeLocation, lineFade.value);
-          //set the two colors
+          //set the two colors and fade parameters
           gl.uniform1i(color0Location, color0.value);
           gl.uniform1i(color1Location, color1.value);
+          gl.uniform1i(controlLocation, control.value);
           gl.uniform1i(invertLocation, invert.checked ? 1 : 0);
           // Draw the rectangle.
           var primitiveType = gl.TRIANGLES;
@@ -209,7 +218,8 @@ function draw() {
           var count = 6;
           gl.drawArrays(primitiveType, offset, count);
       }
-    requestAnimationFrame(draw);
+    if (refreshToggle.checked)
+        requestAnimationFrame(draw);
 }
 
 function setRectangle(gl, x, y, width, height) {
@@ -233,6 +243,13 @@ function init() {
   program = webglUtils.createProgramFromScripts(gl, ["vertex-shader-2d", "fragment-shader-2d"]);
   gl.useProgram(program);
   resetToDefaults();
+  refreshToggle.oninput = function() {
+      refreshButton.style.display = refreshToggle.checked ? "none" : "block";
+      if (refreshToggle.checked) requestAnimationFrame(draw);
+  }
+  refreshButton.onclick = function() {
+      requestAnimationFrame(draw);
+  }
 }
 
 function main() {
