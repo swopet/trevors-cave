@@ -266,6 +266,12 @@ void main() {
 }
 
 </script>
-<script src="hex_shader_code/webgl-utils.js"></script>
-<script src="hex_shader_code/hex_shader_applet.js"></script>
+<?php
+	echo "<script>";
+	include_once($_SERVER['DOCUMENT_ROOT']."/../posts/hex_shader_code/webgl-utils.js");
+	echo "</script>";
+	echo "<script>";
+	include_once($_SERVER['DOCUMENT_ROOT']."/../posts/hex_shader_code/hex_shader_applet.js");
+	echo "</script>";
+?>
 </html>

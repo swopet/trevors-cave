@@ -10,6 +10,7 @@
 	$posts = array(
 		"symbio-ink-waltz" => new PostData('4th April 2020',"Symbio Ink Waltz"),
 		"nov-21-piano" => new PostData('21st November 2020',"Foggy Afternoon Piano"),
+		"hex-shader-applet" => new PostData('21st January 2021',"Hex Shader")
 	);
 	function post_compare($postkey1,$postkey2){
 		global $posts;
@@ -29,18 +30,24 @@
 	}
 	if (isset($_GET["p"])){
 		$post_name = $_GET["p"];
-		if (@include($_SERVER['DOCUMENT_ROOT']."/../posts/".$post_name.".php")){
-			$post_data = $posts[$post_name];
+		$post_data = $posts[$post_name];
+		if ($post_data != null){
 			echo "<p>" . $post_data->title . ": " . date("l jS \of F Y",$posts[$post_name]->date) . "</p>";
-			$list_posts = false;
-			$index = array_search($post_name,$post_keys);
-			if ($index != 0){
-				$next_post_name = $post_keys[$index-1];
-				echo "<p>Next Post: <a href=\"?p=" . $next_post_name . "\">" . $posts[$next_post_name]->title . "</a></p>";
+			if (@include($_SERVER['DOCUMENT_ROOT']."/../posts/".$post_name.".php")){
+				
+				$list_posts = false;
+				$index = array_search($post_name,$post_keys);
+				if ($index != 0){
+					$next_post_name = $post_keys[$index-1];
+					echo "<p>Next Post: <a href=\"?p=" . $next_post_name . "\">" . $posts[$next_post_name]->title . "</a></p>";
+				}
+				if ($index != count($post_keys) - 1){
+					$previous_post_name = $post_keys[$index+1];
+					echo "<p>Previous Post: <a href=\"?p=" . $previous_post_name . "\">" . $posts[$previous_post_name]->title . "</a></p>";
+				}
 			}
-			if ($index != count($post_keys) - 1){
-				$previous_post_name = $post_keys[$index+1];
-				echo "<p>Previous Post: <a href=\"?p=" . $previous_post_name . "\">" . $posts[$previous_post_name]->title . "</a></p>";
+			else {
+				echo "<p>" . $post_name . " in database, but no corresponding file!</p>";
 			}
 		}
 		else {
