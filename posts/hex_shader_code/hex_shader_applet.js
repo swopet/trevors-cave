@@ -33,8 +33,8 @@ class SliderInput{
     }
 };
 
-const minSize = new SliderInput("minSize",12.0,10.0);
-const steps = new SliderInput("steps",2);
+const minSize = new SliderInput("minSize",1.0,10.0);
+const steps = new SliderInput("steps",7);
 const lineWidth = new SliderInput("lineWidth",1.0,5.0);
 const lineFade = new SliderInput("lineFade",1.0,5.0);
 const color0 = document.getElementById("color0");
@@ -149,6 +149,9 @@ function draw() {
           var stepsLocation = gl.getUniformLocation(program, "steps");
           var lineWidthLocation = gl.getUniformLocation(program, "lineWidth");
           var lineFadeLocation = gl.getUniformLocation(program, "lineFade");
+          var color0Location = gl.getUniformLocation(program, "color0");
+          var color1Location = gl.getUniformLocation(program, "color1");
+          var invertLocation = gl.getUniformLocation(program, "invert");
           // Tell WebGL how to convert from clip space to pixels
           gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
@@ -196,7 +199,10 @@ function draw() {
           //set the line width and line fade
           gl.uniform1f(lineWidthLocation, lineWidth.value);
           gl.uniform1f(lineFadeLocation, lineFade.value);
-          
+          //set the two colors
+          gl.uniform1i(color0Location, color0.value);
+          gl.uniform1i(color1Location, color1.value);
+          gl.uniform1i(invertLocation, invert.checked ? 1 : 0);
           // Draw the rectangle.
           var primitiveType = gl.TRIANGLES;
           var offset = 0;
