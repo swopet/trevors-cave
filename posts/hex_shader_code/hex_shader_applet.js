@@ -39,6 +39,7 @@ class SliderInput{
 
 const minSize = new SliderInput("minSize",1.0,10.0);
 const steps = new SliderInput("steps",7);
+const maxSize = document.getElementById("maxSize");
 const lineWidth = new SliderInput("lineWidth",2.0,5.0);
 const lineFade = new SliderInput("lineFade",1.0,5.0);
 const gamma = new SliderInput("gamma",1.0,10.0);
@@ -119,7 +120,19 @@ function isPowerOf2(value) {
 
 var program;
 
+function saveImage() {
+  if (canvas.width === 0) return;
+  draw();
+  let downloadLink = document.createElement('a');
+  downloadLink.setAttribute('download', 'hexed_image.png');
+  let dataURL = canvas.toDataURL('image/png');
+  let url = dataURL.replace(/^data:image\/png/,'data:application/octet-stream');
+  downloadLink.setAttribute('href', url);
+  downloadLink.click();
+}
+
 function draw() {
+	  maxSize.innerHTML = minSize.value * Math.pow(3.0,steps.value/2.0).toFixed(0);
       // Set clear color to black, fully opaque
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
       // Clear the color buffer with specified clear color

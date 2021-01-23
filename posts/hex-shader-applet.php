@@ -7,18 +7,22 @@
 <div><input type="file" id="file-selector" accept=".jpg, .jpeg, .png"><p id="widthxheight"></p></div>
 
 <?php 
-	function echoSlider($title,$id_base,$min,$max,$ratio,$units){
+	function echoSlider($title,$id_base,$min,$max,$ratio,$units,$tooltiptext=null){
 		echo "<div>";
 		echo "<p>".$title."</p>";
 		echo "<input type=\"range\" min=\"".$min*$ratio."\" max=\"".$max*$ratio."\" class=\"slider\" id=\"".$id_base."Input\">";
 		echo "<input type=\"text\" id=\"".$id_base."Display\"> ".$units;
+		if ($tooltiptext!=null){
+			echo "<div class=\"tooltip\">?<span class=\"tooltiptext\">".$tooltiptext."</span></div>";
+		}
 		echo "</div>";
 	}
 	echoSlider("Minimum Side Length","minSize",0.1,50.0,10.0,"Pixels");
-	echoSlider("Number of Steps","steps",0,10.0,1.0,"Steps");
+	echoSlider("Number of Steps","steps",0,10.0,1.0,"Steps","Each step increases side length by a factor of sqrt(3)");
+	echo "<div><p>Max Side Length: <span id=\"maxSize\"></span> Pixels</p></div>";
 	echoSlider("Line Width","lineWidth",0,20.0,5.0,"Pixels");
 	echoSlider("Line Fade","lineFade",0,20.0,5.0,"Pixels");
-	echoSlider("Gamma","gamma",0.1,4.0,10.0,"");
+	echoSlider("Gamma","gamma",0.1,4.0,10.0,"","Determines whether contrast is more visible in darker or brighter areas");
 ?>
 
 <div>
@@ -43,20 +47,28 @@
         <option value=0>Luminance</option>
         <option value=1>Brightness</option>
     </select>
+	<div class="tooltip">?<span class="tooltiptext">Luminance: <a href="https://en.wikipedia.org/wiki/Relative_luminance" target="_blank">sRGB relative luminance</a><br>Brightness: RGB weighted equally</span></div>
 </div>
 <div>
-    <p>Invert greyscale input?
-    <input type="checkbox" id="invert"></input>
-    </p>
+    <span>Invert greyscale input
+    <input type="checkbox" id="invert">
+	<div class="tooltip">?<span class="tooltiptext">Default: Dark=High Density Hexagons<br>Inverted: Light=High Density Hexagons<br>Swapping Color 0 and Color 1 is recommended when this is checked</span></div>
+	</span>
+    
 </div>
 <div>
-    <p>Refresh on parameter change?
-    <input type="checkbox" id="refreshToggle"></input>
-    </p>
+    <span>Refresh on parameter change
+    <input type="checkbox" id="refreshToggle">
+	<div class="tooltip">?<span class="tooltiptext">Recommend you uncheck this if you have limited graphics capabilities, or if you're using a large image.</span></div>
+    </span>
+	
     <button id="refreshButton">Refresh</button>
 </div>
 <div>
     <button onclick="resetToDefaults()">Reset to Defaults</button>
+</div>
+<div>
+	<button onclick="saveImage()">Save Image</button>
 </div>
 
 <?php
