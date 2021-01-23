@@ -31,7 +31,8 @@
     <select name="color0" id="color0">
         <option value=0>Black</option>
         <option value=1>White</option>
-        <option value=2>Original Color</option>
+        <option value=2>Source Color</option>
+		<option value=3>Original Color (no blur)</option>
     </select>
 </div>
 <div>
@@ -39,7 +40,8 @@
     <select name="color1" id="color1">
         <option value=0>Black</option>
         <option value=1>White</option>
-        <option value=2>Original Color</option>
+        <option value=2>Source Color</option>
+		<option value=3>Original Color (no blur)</option>
     </select>
 </div>
 <div>

@@ -156,7 +156,7 @@ function applyBlur(texture,fb,dimension,blur_radius){
 	  1.0,  0.0,
 	  1.0,  1.0,
 	]), gl.STATIC_DRAW);
-
+	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 	gl.viewport(0,0,user_image.width,user_image.height);
     // Turn on the position attribute
@@ -204,6 +204,7 @@ function applyBlur(texture,fb,dimension,blur_radius){
 
 function loadSourceTexture(gl, url) {
   const texture = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
   // Because images have to be downloaded over the internet
@@ -220,6 +221,7 @@ function loadSourceTexture(gl, url) {
   const srcType = gl.UNSIGNED_BYTE;
 
   user_image.onload = function() {
+	gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
                   srcFormat, srcType, user_image);
@@ -302,8 +304,10 @@ function drawToCanvas() {
 	  1.0,  0.0,
 	  1.0,  1.0,
 	]), gl.STATIC_DRAW);
-
+	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_2D, source_tex);
+	gl.activeTexture(gl.TEXTURE1);
+	gl.bindTexture(gl.TEXTURE_2D, user_image_tex);
 
 	// lookup uniforms
 	var resolutionLocation = gl.getUniformLocation(hex_program, "u_resolution");
@@ -319,7 +323,8 @@ function drawToCanvas() {
 	var gammaLocation = gl.getUniformLocation(hex_program, "gamma");
 	// Tell WebGL how to convert from clip space to pixels
 	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
+	var uimageLocation = gl.getUniformLocation(hex_program, "u_image");
+	var uimage1Location = gl.getUniformLocation(hex_program, "u_image1");
 	// Turn on the position attribute
 	gl.enableVertexAttribArray(positionLocation);
 
@@ -349,6 +354,10 @@ function drawToCanvas() {
 	var offset = 0;        // start at the beginning of the buffer
 	gl.vertexAttribPointer(
 	  texcoordLocation, size, type, normalize, stride, offset);
+
+	// set the textures
+	gl.uniform1i(uimageLocation,0);
+	gl.uniform1i(uimage1Location,1);
 
 	// set the resolution
 	gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
