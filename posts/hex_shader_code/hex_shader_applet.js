@@ -18,12 +18,16 @@ class SliderInput{
         this.slider_elt.oninput = function() {
             self.value = this.value/self.ratio;
             self.display_elt.value = self.value;
+			if (refreshToggle.checked)
+				requestAnimationFrame(draw);
         }
         this.display_elt.oninput = function() {
             var num = parseFloat(this.value);
             if (num === NaN) return;
             self.slider_elt.value = num*self.ratio;
             self.value = num;
+			if (refreshToggle.checked)
+				requestAnimationFrame(draw);
         }
     }
     reset(){
@@ -37,6 +41,7 @@ const minSize = new SliderInput("minSize",1.0,10.0);
 const steps = new SliderInput("steps",7);
 const lineWidth = new SliderInput("lineWidth",2.0,5.0);
 const lineFade = new SliderInput("lineFade",1.0,5.0);
+const gamma = new SliderInput("gamma",1.0,10.0);
 const color0 = document.getElementById("color0");
 const color1 = document.getElementById("color1");
 const control = document.getElementById("control");
@@ -55,10 +60,13 @@ function resetToDefaults() {
     steps.reset();
     lineWidth.reset();
     lineFade.reset();
+	gamma.reset();
     color0.value = 0;
     color1.value = 1;
     control.value = 0;
     invert.checked = false;
+	refreshToggle.checked = true;
+	refreshButton.style.display = "none";
 }
 
 function loadSourceTexture(gl, url) {
@@ -160,6 +168,7 @@ function draw() {
           var color1Location = gl.getUniformLocation(program, "color1");
           var controlLocation = gl.getUniformLocation(program, "control");
           var invertLocation = gl.getUniformLocation(program, "invert");
+		  var gammaLocation = gl.getUniformLocation(program, "gamma");
           // Tell WebGL how to convert from clip space to pixels
           gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
@@ -207,6 +216,8 @@ function draw() {
           //set the line width and line fade
           gl.uniform1f(lineWidthLocation, lineWidth.value);
           gl.uniform1f(lineFadeLocation, lineFade.value);
+		  //set the gamma
+		  gl.uniform1f(gammaLocation, gamma.value);
           //set the two colors and fade parameters
           gl.uniform1i(color0Location, color0.value);
           gl.uniform1i(color1Location, color1.value);
@@ -218,8 +229,6 @@ function draw() {
           var count = 6;
           gl.drawArrays(primitiveType, offset, count);
       }
-    if (refreshToggle.checked)
-        requestAnimationFrame(draw);
 }
 
 function setRectangle(gl, x, y, width, height) {
@@ -249,6 +258,22 @@ function init() {
   }
   refreshButton.onclick = function() {
       requestAnimationFrame(draw);
+  }
+  color0.onchange = function() {
+	  if (refreshToggle.checked)
+				requestAnimationFrame(draw);
+  }
+  color1.onchange = function() {
+	  if (refreshToggle.checked)
+				requestAnimationFrame(draw);
+  }
+  control.onchange = function() {
+	  if (refreshToggle.checked)
+				requestAnimationFrame(draw);
+  }
+  invert.onchange = function() {
+	  if (refreshToggle.checked)
+				requestAnimationFrame(draw);
   }
 }
 

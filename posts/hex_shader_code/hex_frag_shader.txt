@@ -1,18 +1,180 @@
 precision mediump float;
 
 uniform vec2 iResolution; 
+uniform float minSize;
+uniform float steps;
+uniform float lineWidth;
+uniform float lineFade;
+uniform float gamma;
+uniform int color0;
+uniform int color1;
+uniform int control;
+uniform int invert;
 // our texture
 uniform sampler2D u_image;
  
 // the texCoords passed in from the vertex shader.
 varying vec2 v_texCoord;
 
+#define SQRT_3 1.73205080757
+#define HALF_SQRT_3 0.86602540378
+#define THIRD_SQRT_3 0.57735026919
+#define PI 3.14159265359
+#define SIXTH_PI 0.52359877559
+#define THIRD_PI 1.0471975512
+#define HALF_PI 1.57079632679
+#define MAX_STEPS 12.0
+//#define f0 0; #define f1 1; #define f2 2; #define f3 3;
+//#define b0 4; #define b1 5; #define b2 6; #define b2 7;
+//#define start_angle 8;
+
+struct Orientation
+{
+    float f0, f1, f2, f3, 
+            b0, b1, b2, b3,
+            start_angle;
+};
+
+Orientation layout_pointy
+  = Orientation(SQRT_3, HALF_SQRT_3, 0.0, 3.0 / 2.0,
+                THIRD_SQRT_3, -1.0 / 3.0, 0.0, 2.0 / 3.0,
+                0.5);
+Orientation layout_flat
+  = Orientation(3.0 / 2.0, 0.0, HALF_SQRT_3, SQRT_3,
+                2.0 / 3.0, 0.0, -1.0 / 3.0, THIRD_SQRT_3,
+                0.0);
+
+struct Layout
+{
+    Orientation orientation;
+    vec2 layout_size;
+    vec2 origin;
+};
+
+struct Hex
+{
+    int q;
+    int r;
+    int s;
+};
+
+struct FractionalHex
+{
+    float q;
+    float r;
+    float s;
+};
+
+float round(float val)
+{
+    return floor(val + 0.5);
+}
+
+vec2 hex_to_pixel(Layout layout, Hex h)
+{
+    Orientation M = layout.orientation;
+    float x = (M.f0 * float(h.q) + M.f1 * float(h.r)) * layout.layout_size.x;
+    float y = (M.f2 * float(h.q) + M.f3 * float(h.r)) * layout.layout_size.y;
+    return vec2(x + layout.origin.x, y + layout.origin.y);
+}
+
+FractionalHex pixel_to_hex(Layout layout, vec2 p) {
+    Orientation M = layout.orientation;
+    vec2 pt = vec2((p.x - layout.origin.x) / layout.layout_size.x,
+                     (p.y - layout.origin.y) / layout.layout_size.y);
+    float q = M.b0 * pt.x + M.b1 * pt.y;
+    float r = M.b2 * pt.x + M.b3 * pt.y;
+    return FractionalHex(q, r, -q - r);
+}
+
+float sdfLine(vec2 p, vec2 a, vec2 b)
+{
+  vec2 pa = p-a;
+  vec2 ba = b-a;
+  float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+  return length(pa-ba*h);
+}
+
+vec2 cis(float theta){
+ return vec2(cos(theta),sin(theta));
+}
+
+Hex HexRound(FractionalHex h){
+    int q = int(round(h.q));
+    int r = int(round(h.r));
+    int s = int(round(h.s));
+    float q_diff = abs(float(q) - h.q);
+    float r_diff = abs(float(r) - h.r);
+    float s_diff = abs(float(s) - h.s);
+    if (q_diff > r_diff && q_diff > s_diff) {
+        q = -r - s;
+    } else if (r_diff > s_diff) {
+        r = -q - s;
+    } else {
+        s = -q - r;
+    }
+    return Hex(q, r, s);
+}
+
+float hexGrid(float x, float y, float d_in, float div_size, float num_steps){
+  vec2 hex_center = iResolution/2.0;
+  vec2 p = vec2(x,y);
+  float div_d = d_in * float(num_steps);
+  float div_select = floor(div_d);
+  float div_size_ = div_size * pow(SQRT_3,num_steps - float(div_select));
+  div_d = div_d - float(div_select);
+  for (float i = 0.0; i < MAX_STEPS; i ++){
+    if (i < div_select){
+        float scalar = div_size*pow(SQRT_3,num_steps - i - 1.0)*2.0;
+        vec2 dir = scalar*cis(mod(i,2.0)==0.0 ? THIRD_PI : -HALF_PI);
+        hex_center = hex_center - dir;
+    }
+  }
+  Layout layout;
+  if (mod(div_select,2.0) == 0.0){
+    layout = Layout(layout_pointy,vec2(div_size_),vec2(hex_center));
+  }
+  else layout = Layout(layout_flat,vec2(div_size_),vec2(hex_center));
+  hex_center = hex_to_pixel(layout,HexRound(pixel_to_hex(layout,p)));
+  p = p - hex_center;
+  float r = div_d * div_size_*THIRD_SQRT_3;
+  float theta = div_d * PI/6.0;
+  float d = 1e10;
+  for (float i = 0.0; i < 6.0; i++){
+   float a_angle = ((mod(div_select,2.0) == 0.0) ? 0.0 : SIXTH_PI) + THIRD_PI * i;
+   float b_angle = ((mod(div_select,2.0) == 0.0) ? THIRD_PI : HALF_PI) + THIRD_PI * i;
+   vec2 a = r*cis(a_angle);
+   vec2 b = r*cis(b_angle);
+   d = min(d,sdfLine(p,a,b));
+   if (mod(i,2.0)==0.0){
+    vec2 a_ = a+div_size_*cis((a_angle + b_angle)/2.0 - theta);
+    vec2 b_ = b+div_size_*cis((a_angle + b_angle)/2.0 + theta);
+    d = min(d,sdfLine(p,a,a_));
+    d = min(d,sdfLine(p,b,b_));
+   }
+  }
+  return d;
+}
+
+float getValue(vec2 p, float greyscale) {
+   float prog = (invert == 1) ? greyscale : 1.0 - greyscale;
+   return hexGrid(p.x,p.y,prog,minSize,min(steps,MAX_STEPS));
+}
  
 void main() {
    // Look up a color from the texture.
    vec4 source_color = texture2D(u_image, v_texCoord);
-   float grey_scale = dot(source_color.xyz,vec3(0.22,0.71,0.07));
+   vec4 source_color_gamma = vec4(pow(source_color.x,gamma),pow(source_color.y,gamma),pow(source_color.z,gamma),source_color.w);
+   float luminance = dot(source_color_gamma.xyz,vec3(0.22,0.71,0.07));
+   float brightness = dot(source_color_gamma.xyz,vec3(0.3333,0.3333,0.3333));
+   float greyscale = (control==0) ? luminance: brightness;
    vec2 p = v_texCoord * iResolution;
-   vec4 out_color = vec4(vec3(grey_scale),1.0);
+   
+   
+   float val = getValue(p, greyscale);
+   vec4 col0 = (color0 == 0) ? vec4(0.0,0.0,0.0,1.0) : ((color0 == 1) ? vec4(1.0) : source_color);
+   vec4 col1 = (color1 == 0) ? vec4(0.0,0.0,0.0,1.0) : ((color1 == 1) ? vec4(1.0) : source_color);
+   vec4 mixed_col = mix(col0,col1,smoothstep(lineWidth/2.0,lineWidth/2.0+lineFade,val));
+   vec4 out_color = mixed_col;
    gl_FragColor = out_color;
 }
