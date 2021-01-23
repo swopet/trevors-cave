@@ -5,31 +5,22 @@
 </div>
 
 <div><input type="file" id="file-selector" accept=".jpg, .jpeg, .png"><p id="widthxheight"></p></div>
-<div>
-    <p>Minimum side length</p>
-    <input type="range" min="1" max="1000" class="slider" id="minSizeInput" >
-    <input type="text" id="minSizeDisplay"></span> Pixels
-</div>
-<div>
-    <p>Number of steps</p>
-    <input type="range" min="0" max="10" class="slider" id="stepsInput" >
-    <input type="text" id="stepsDisplay"></span> Steps
-</div>
-<div>
-    <p>Line width</p>
-    <input type="range" min="0" max="100" class="slider" id="lineWidthInput" >
-    <input type="text" id="lineWidthDisplay"></span> Pixels
-</div>
-<div>
-    <p>Line fade</p>
-    <input type="range" min="0" max="100" class="slider" id="lineFadeInput" >
-    <input type="text" id="lineFadeDisplay"></span> Pixels
-</div>
-<div>
-    <p>Gamma</p>
-    <input type="range" min="0" max="40" class="slider" id="gammaInput" >
-    <input type="text" id="gammaDisplay"></span>
-</div>
+
+<?php 
+	function echoSlider($title,$id_base,$min,$max,$ratio,$units){
+		echo "<div>";
+		echo "<p>".$title."</p>";
+		echo "<input type=\"range\" min=\"".$min*$ratio."\" max=\"".$max*$ratio."\" class=\"slider\" id=\"".$id_base."Input\">";
+		echo "<input type=\"text\" id=\"".$id_base."Display\"> ".$units;
+		echo "</div>";
+	}
+	echoSlider("Minimum Side Length","minSize",0.1,50.0,10.0,"Pixels");
+	echoSlider("Number of Steps","steps",0,10.0,1.0,"Steps");
+	echoSlider("Line Width","lineWidth",0,20.0,5.0,"Pixels");
+	echoSlider("Line Fade","lineFade",0,20.0,5.0,"Pixels");
+	echoSlider("Gamma","gamma",0.1,4.0,10.0,"");
+?>
+
 <div>
     <label for="color0">Color 0</label>
     <select name="color0" id="color0">
