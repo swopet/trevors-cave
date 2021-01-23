@@ -260,6 +260,7 @@ function setRectangle(gl, x, y, width, height) {
 }
 
 function init() {
+  
   user_image.src = '';
   gl = canvas.getContext("webgl");
   program = webglUtils.createProgramFromScripts(gl, ["vertex-shader-2d", "fragment-shader-2d"]);
@@ -293,6 +294,7 @@ function init() {
 function main() {
   init();
   const fileSelector = document.getElementById('file-selector');
+  fileSelector.value = null;
   fileSelector.addEventListener('change', (event) => {
     const fileList = event.target.files;
     console.log(fileList);
