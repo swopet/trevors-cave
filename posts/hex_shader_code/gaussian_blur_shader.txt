@@ -1,0 +1,44 @@
+precision mediump float;
+
+#define PI 3.14159265359
+
+uniform vec2 iResolution;
+uniform int dimension;
+uniform float radius;
+// our texture
+uniform sampler2D u_image;
+
+// the texCoords passed in from the vertex shader.
+varying vec2 v_texCoord;
+ 
+void main() {
+   // Look up a color from the texture.
+   vec4 source_color = texture2D(u_image, v_texCoord);
+   float blur_values[10];
+   float denom = sqrt(2.0 * PI) * radius;
+   for (int i = 0; i < 10; i++){
+		blur_values[i] = 1.0 / denom * exp(-float(i*i)/(2.0 * radius*radius));
+   }
+   vec2 offset = ((dimension==0) ? vec2(0.0,1.0) : vec2(1.0,0.0)) / iResolution;
+   vec4 color_sum = source_color * blur_values[0];
+   float coeff_sum = blur_values[0];
+   for (int i = 1; i < 10; i++){
+		if (float(i) <= radius){
+			float coeff = blur_values[i];
+			vec2 v_minus = v_texCoord - offset * float(i);
+			vec2 v_plus = v_texCoord + offset * float(i);
+			if (v_minus.x >= 0.0 && v_minus.y >= 0.0){
+				vec4 color_minus = texture2D(u_image, v_minus);
+				color_sum += color_minus * coeff;
+				coeff_sum += coeff;
+			}
+			if (v_plus.x <= 1.0 && v_plus.y <= 1.0){
+				vec4 color_plus = texture2D(u_image, v_plus);
+				color_sum += color_plus * coeff;
+				coeff_sum += coeff;
+			}
+		}
+   }
+   color_sum = color_sum / coeff_sum;
+   gl_FragColor = color_sum;
+}

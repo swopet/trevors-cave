@@ -43,18 +43,73 @@ const maxSize = document.getElementById("maxSize");
 const lineWidth = new SliderInput("lineWidth",2.0,5.0);
 const lineFade = new SliderInput("lineFade",1.0,5.0);
 const gamma = new SliderInput("gamma",1.0,10.0);
+const gaussianBlur = new SliderInput("gaussianBlur",0);
 const color0 = document.getElementById("color0");
 const color1 = document.getElementById("color1");
 const control = document.getElementById("control");
 const invert = document.getElementById("invert");
 const refreshToggle = document.getElementById("refreshToggle");
 const refreshButton = document.getElementById("refreshButton");
-
+var hex_program;
 var user_image_tex = null;
 // Initialize the GL context
+var blur_buffer_0_texture = null;
+var blur_buffer_0_fb = null;
+var blur_buffer_1_texture = null;
+var blur_buffer_1_fb = null;
 var gl;
 main();
 
+function create_frame_buffer(){
+	const texture = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	{
+		const level = 0;
+		const internalFormat = gl.RGBA;
+		const width = user_image.width;
+		const height = user_image.height;
+		const border = 0;
+		const format = gl.RGBA;
+		const type = gl.UNSIGNED_BYTE;
+		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+					  width, height, border,
+					  format, type, null);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	}
+	const fb = gl.createFramebuffer();
+	gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+	const attachmentPoint = gl.COLOR_ATTACHMENT0;
+	const level = 0;
+	gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, texture, level);
+	return {fb, texture};
+}
+
+function initializeBlurBuffers(){
+	if (blur_buffer_0_texture != null){
+		gl.deleteTexture(blur_buffer_0_texture);
+		blur_buffer_0_texture = null;
+	}
+	if (blur_buffer_0_fb != null){
+		gl.deleteFramebuffer(blur_buffer_0_fb);
+		blur_buffer_0_fb = null;
+	}
+	if (blur_buffer_1_texture != null){
+		gl.deleteTexture(blur_buffer_1_texture);
+		blur_buffer_1_texture = null;
+	}
+	if (blur_buffer_1_fb != null){
+		gl.deleteFramebuffer(blur_buffer_1_fb);
+		blur_buffer_1_fb = null;
+	}
+	let buffer_0 = create_frame_buffer();
+	blur_buffer_0_texture = buffer_0.texture;
+	blur_buffer_0_fb = buffer_0.fb;
+	let buffer_1 = create_frame_buffer();
+	blur_buffer_1_texture = buffer_1.texture;
+	blur_buffer_1_fb = buffer_1.fb;
+}
 
 function resetToDefaults() {
     minSize.reset();
@@ -62,12 +117,89 @@ function resetToDefaults() {
     lineWidth.reset();
     lineFade.reset();
 	gamma.reset();
+	gaussianBlur.reset();
     color0.value = 0;
     color1.value = 1;
     control.value = 0;
     invert.checked = false;
 	refreshToggle.checked = true;
 	refreshButton.style.display = "none";
+}
+
+function applyBlur(texture,fb,dimension,blur_radius){
+  gl.useProgram(blur_program);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
+  gl.clearColor(0.0,0.0,1.0,1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  
+  //lookup uniforms in vert shader
+  var positionLocation = gl.getAttribLocation(blur_program, "a_position");
+  var texcoordLocation = gl.getAttribLocation(blur_program, "a_texCoord");
+  var resolutionLocation = gl.getUniformLocation(blur_program, "u_resolution");
+  
+  // lookup uniforms for frag shader
+  var iResolutionLocation = gl.getUniformLocation(blur_program, "iResolution");
+  var dimensionLocation = gl.getUniformLocation(blur_program, "dimension");
+  var radiusLocation = gl.getUniformLocation(blur_program, "radius");
+  
+  var positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  setRectangle(gl, 0, 0, user_image.width, user_image.height);
+  // provide texture coordinates for the rectangle.
+	var texcoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+	  0.0,  0.0,
+	  1.0,  0.0,
+	  0.0,  1.0,
+	  0.0,  1.0,
+	  1.0,  0.0,
+	  1.0,  1.0,
+	]), gl.STATIC_DRAW);
+
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.viewport(0,0,user_image.width,user_image.height);
+    // Turn on the position attribute
+	gl.enableVertexAttribArray(positionLocation);
+
+	// Bind the position buffer.
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+	// Tell the position attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+	var size = 2;          // 2 components per iteration
+	var type = gl.FLOAT;   // the data is 32bit floats
+	var normalize = false; // don't normalize the data
+	var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+	var offset = 0;        // start at the beginning of the buffer
+	gl.vertexAttribPointer(
+	  positionLocation, size, type, normalize, stride, offset);
+
+	// Turn on the texcoord attribute
+	gl.enableVertexAttribArray(texcoordLocation);
+
+	// bind the texcoord buffer.
+	gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+
+	// Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
+	var size = 2;          // 2 components per iteration
+	var type = gl.FLOAT;   // the data is 32bit floats
+	var normalize = false; // don't normalize the data
+	var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+	var offset = 0;        // start at the beginning of the buffer
+	gl.vertexAttribPointer(
+	  texcoordLocation, size, type, normalize, stride, offset);
+
+	// set the resolution in vert
+	gl.uniform2f(resolutionLocation, user_image.width, user_image.height);
+	
+	gl.uniform2f(iResolutionLocation, user_image.width, user_image.height);
+	gl.uniform1i(dimensionLocation, dimension);
+	gl.uniform1f(radiusLocation, blur_radius);
+	
+	var primitiveType = gl.TRIANGLES;
+	var offset = 0;
+	var count = 6;
+	gl.drawArrays(primitiveType, offset, count);
 }
 
 function loadSourceTexture(gl, url) {
@@ -106,6 +238,7 @@ function loadSourceTexture(gl, url) {
        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     }
+	initializeBlurBuffers();
     document.getElementById("widthxheight").innerHTML = String(user_image.width).concat("x").concat(String(user_image.height));
     requestAnimationFrame(draw);
   };
@@ -118,7 +251,7 @@ function isPowerOf2(value) {
   return (value & (value - 1)) == 0;
 }
 
-var program;
+
 
 function saveImage() {
   if (canvas.width === 0) return;
@@ -131,116 +264,124 @@ function saveImage() {
   downloadLink.click();
 }
 
+function drawToCanvas() {
+	var blur_radius = Math.floor(gaussianBlur.value);
+	var source_tex;
+	if (blur_radius > 0){
+		applyBlur(user_image_tex,blur_buffer_0_fb,0,blur_radius);
+		applyBlur(blur_buffer_0_texture,blur_buffer_1_fb,1,blur_radius);
+		source_tex = blur_buffer_1_texture;
+	}
+	else source_tex = user_image_tex;
+	gl.useProgram(hex_program);
+	gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+	// Set clear color to black, fully opaque
+	gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	// Clear the color buffer with specified clear color
+	gl.clear(gl.COLOR_BUFFER_BIT);
+	// look up where the vertex data needs to go.
+	var positionLocation = gl.getAttribLocation(hex_program, "a_position");
+	var texcoordLocation = gl.getAttribLocation(hex_program, "a_texCoord");
+
+	// Create a buffer to put three 2d clip space points in
+	var positionBuffer = gl.createBuffer();
+
+	// Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	// Set a rectangle the same size as the image.
+	setRectangle(gl, 0, 0, canvas.width, canvas.height);
+
+	// provide texture coordinates for the rectangle.
+	var texcoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+	  0.0,  0.0,
+	  1.0,  0.0,
+	  0.0,  1.0,
+	  0.0,  1.0,
+	  1.0,  0.0,
+	  1.0,  1.0,
+	]), gl.STATIC_DRAW);
+
+	gl.bindTexture(gl.TEXTURE_2D, source_tex);
+
+	// lookup uniforms
+	var resolutionLocation = gl.getUniformLocation(hex_program, "u_resolution");
+	var iResolutionLocation = gl.getUniformLocation(hex_program, "iResolution");
+	var minSizeLocation = gl.getUniformLocation(hex_program, "minSize");
+	var stepsLocation = gl.getUniformLocation(hex_program, "steps");
+	var lineWidthLocation = gl.getUniformLocation(hex_program, "lineWidth");
+	var lineFadeLocation = gl.getUniformLocation(hex_program, "lineFade");
+	var color0Location = gl.getUniformLocation(hex_program, "color0");
+	var color1Location = gl.getUniformLocation(hex_program, "color1");
+	var controlLocation = gl.getUniformLocation(hex_program, "control");
+	var invertLocation = gl.getUniformLocation(hex_program, "invert");
+	var gammaLocation = gl.getUniformLocation(hex_program, "gamma");
+	// Tell WebGL how to convert from clip space to pixels
+	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+	// Turn on the position attribute
+	gl.enableVertexAttribArray(positionLocation);
+
+	// Bind the position buffer.
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+	// Tell the position attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+	var size = 2;          // 2 components per iteration
+	var type = gl.FLOAT;   // the data is 32bit floats
+	var normalize = false; // don't normalize the data
+	var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+	var offset = 0;        // start at the beginning of the buffer
+	gl.vertexAttribPointer(
+	  positionLocation, size, type, normalize, stride, offset);
+
+	// Turn on the texcoord attribute
+	gl.enableVertexAttribArray(texcoordLocation);
+
+	// bind the texcoord buffer.
+	gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+
+	// Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
+	var size = 2;          // 2 components per iteration
+	var type = gl.FLOAT;   // the data is 32bit floats
+	var normalize = false; // don't normalize the data
+	var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+	var offset = 0;        // start at the beginning of the buffer
+	gl.vertexAttribPointer(
+	  texcoordLocation, size, type, normalize, stride, offset);
+
+	// set the resolution
+	gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
+	// set the image resolution
+	gl.uniform2f(iResolutionLocation, user_image.width, user_image.height);
+	//set the minimum hex side length
+	gl.uniform1f(minSizeLocation, minSize.value);
+	//set the number of steps
+	gl.uniform1f(stepsLocation, steps.value);
+	//set the line width and line fade
+	gl.uniform1f(lineWidthLocation, lineWidth.value);
+	gl.uniform1f(lineFadeLocation, lineFade.value);
+	//set the gamma
+	gl.uniform1f(gammaLocation, gamma.value);
+	//set the two colors and fade parameters
+	gl.uniform1i(color0Location, color0.value);
+	gl.uniform1i(color1Location, color1.value);
+	gl.uniform1i(controlLocation, control.value);
+	gl.uniform1i(invertLocation, invert.checked ? 1 : 0);
+	// Draw the rectangle.
+	var primitiveType = gl.TRIANGLES;
+	var offset = 0;
+	var count = 6;
+	gl.drawArrays(primitiveType, offset, count);
+}
+
 function draw() {
-	  maxSize.innerHTML = minSize.value * Math.pow(3.0,steps.value/2.0).toFixed(0);
-      // Set clear color to black, fully opaque
-      gl.clearColor(0.0, 0.0, 0.0, 1.0);
-      // Clear the color buffer with specified clear color
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      if (user_image_tex === null){
-          if (user_image.src !== ''){
-              user_image_tex = loadSourceTexture(gl,user_image.src);
-              return;
-          }
-      }
-      else {
-          // look up where the vertex data needs to go.
-          var positionLocation = gl.getAttribLocation(program, "a_position");
-          var texcoordLocation = gl.getAttribLocation(program, "a_texCoord");
-
-          // Create a buffer to put three 2d clip space points in
-          var positionBuffer = gl.createBuffer();
-
-          // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
-          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-          // Set a rectangle the same size as the image.
-          setRectangle(gl, 0, 0, canvas.width, canvas.height);
-
-          // provide texture coordinates for the rectangle.
-          var texcoordBuffer = gl.createBuffer();
-          gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-              0.0,  0.0,
-              1.0,  0.0,
-              0.0,  1.0,
-              0.0,  1.0,
-              1.0,  0.0,
-              1.0,  1.0,
-          ]), gl.STATIC_DRAW);
-
-          gl.bindTexture(gl.TEXTURE_2D, user_image_tex);
-
-          // lookup uniforms
-          var resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-          var iResolutionLocation = gl.getUniformLocation(program, "iResolution");
-          var minSizeLocation = gl.getUniformLocation(program, "minSize");
-          var stepsLocation = gl.getUniformLocation(program, "steps");
-          var lineWidthLocation = gl.getUniformLocation(program, "lineWidth");
-          var lineFadeLocation = gl.getUniformLocation(program, "lineFade");
-          var color0Location = gl.getUniformLocation(program, "color0");
-          var color1Location = gl.getUniformLocation(program, "color1");
-          var controlLocation = gl.getUniformLocation(program, "control");
-          var invertLocation = gl.getUniformLocation(program, "invert");
-		  var gammaLocation = gl.getUniformLocation(program, "gamma");
-          // Tell WebGL how to convert from clip space to pixels
-          gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-          // Tell it to use our program (pair of shaders)
-          gl.useProgram(program);
-
-          // Turn on the position attribute
-          gl.enableVertexAttribArray(positionLocation);
-
-          // Bind the position buffer.
-          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-          // Tell the position attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-          var size = 2;          // 2 components per iteration
-          var type = gl.FLOAT;   // the data is 32bit floats
-          var normalize = false; // don't normalize the data
-          var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-          var offset = 0;        // start at the beginning of the buffer
-          gl.vertexAttribPointer(
-              positionLocation, size, type, normalize, stride, offset);
-
-          // Turn on the texcoord attribute
-          gl.enableVertexAttribArray(texcoordLocation);
-
-          // bind the texcoord buffer.
-          gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-
-          // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
-          var size = 2;          // 2 components per iteration
-          var type = gl.FLOAT;   // the data is 32bit floats
-          var normalize = false; // don't normalize the data
-          var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-          var offset = 0;        // start at the beginning of the buffer
-          gl.vertexAttribPointer(
-              texcoordLocation, size, type, normalize, stride, offset);
-
-          // set the resolution
-          gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
-          // set the image resolution
-          gl.uniform2f(iResolutionLocation, user_image.width, user_image.height);
-          //set the minimum hex side length
-          gl.uniform1f(minSizeLocation, minSize.value);
-          //set the number of steps
-          gl.uniform1f(stepsLocation, steps.value);
-          //set the line width and line fade
-          gl.uniform1f(lineWidthLocation, lineWidth.value);
-          gl.uniform1f(lineFadeLocation, lineFade.value);
-		  //set the gamma
-		  gl.uniform1f(gammaLocation, gamma.value);
-          //set the two colors and fade parameters
-          gl.uniform1i(color0Location, color0.value);
-          gl.uniform1i(color1Location, color1.value);
-          gl.uniform1i(controlLocation, control.value);
-          gl.uniform1i(invertLocation, invert.checked ? 1 : 0);
-          // Draw the rectangle.
-          var primitiveType = gl.TRIANGLES;
-          var offset = 0;
-          var count = 6;
-          gl.drawArrays(primitiveType, offset, count);
+	  maxSize.innerHTML = (minSize.value * Math.pow(3.0,steps.value/2.0)).toFixed(0);
+	  
+      
+      if (user_image_tex !== null)
+	  {
+		  drawToCanvas();
       }
 }
 
@@ -260,11 +401,9 @@ function setRectangle(gl, x, y, width, height) {
 }
 
 function init() {
-  
-  user_image.src = '';
   gl = canvas.getContext("webgl");
-  program = webglUtils.createProgramFromScripts(gl, ["vertex-shader-2d", "fragment-shader-2d"]);
-  gl.useProgram(program);
+  hex_program = webglUtils.createProgramFromScripts(gl, ["vertex-shader-2d", "hex-fragment-shader-2d"]);
+  blur_program = webglUtils.createProgramFromScripts(gl, ["vertex-shader-2d", "blur-fragment-shader-2d"]);
   resetToDefaults();
   refreshToggle.oninput = function() {
       refreshButton.style.display = refreshToggle.checked ? "none" : "block";
@@ -297,7 +436,6 @@ function main() {
   fileSelector.value = null;
   fileSelector.addEventListener('change', (event) => {
     const fileList = event.target.files;
-    console.log(fileList);
     readImage(event.target.files[0],user_image);
   });
   
@@ -321,6 +459,7 @@ function readImage(file,out_img) {
   const reader = new FileReader();
   reader.addEventListener('load', (event) => {
     out_img.src = event.target.result;
+	user_image_tex = loadSourceTexture(gl,user_image.src);
   });
   reader.readAsDataURL(file);
 }

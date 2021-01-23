@@ -23,6 +23,7 @@
 	echoSlider("Line Width","lineWidth",0,20.0,5.0,"Pixels");
 	echoSlider("Line Fade","lineFade",0,20.0,5.0,"Pixels");
 	echoSlider("Gamma","gamma",0.1,4.0,10.0,"","Determines whether contrast is more visible in darker or brighter areas");
+	echoSlider("Blur Radius","gaussianBlur",0,10,1.0,"Pixels","Convolves the source image with a gaussian blur kernel with the given radius in both dimensions");
 ?>
 
 <div>
@@ -76,8 +77,11 @@
 	echo "<script  id=\"vertex-shader-2d\" type=\"notjs\">";
 	include_once($_SERVER['DOCUMENT_ROOT']."/../posts/hex_shader_code/vert_shader.txt");
 	echo "</script>";
-	echo "<script id=\"fragment-shader-2d\" type=\"x-shader/x-fragment\">";
+	echo "<script id=\"hex-fragment-shader-2d\" type=\"x-shader/x-fragment\">";
 	include_once($_SERVER['DOCUMENT_ROOT']."/../posts/hex_shader_code/hex_frag_shader.txt");
+	echo "</script>";
+	echo "<script id=\"blur-fragment-shader-2d\" type=\"x-shader/x-fragment\">";
+	include_once($_SERVER['DOCUMENT_ROOT']."/../posts/hex_shader_code/gaussian_blur_shader.txt");
 	echo "</script>";
 	echo "<script>";
 	include_once($_SERVER['DOCUMENT_ROOT']."/../posts/hex_shader_code/webgl-utils.js");
