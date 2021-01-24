@@ -230,11 +230,11 @@ function loadSourceTexture(gl, url) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
                   srcFormat, srcType, user_image);
-    canvas.width = Math.min(user_image.width,document.body.clientWidth-20);
-    canvas.height = user_image.height * canvas.width / user_image.width;
+    
     // WebGL1 has different requirements for power of 2 images
     // vs non power of 2 images so check if the image is a
     // power of 2 in both dimensions.
+	setCanvasSize();
     if (isPowerOf2(user_image.width) && isPowerOf2(user_image.height)) {
        // Yes, it's a power of 2. Generate mips.
        gl.generateMipmap(gl.TEXTURE_2D);
@@ -254,6 +254,12 @@ function loadSourceTexture(gl, url) {
   return texture;
 }
 
+function setCanvasSize(){
+	if (user_image.width !== 0){
+		canvas.width = Math.min(user_image.width,document.body.clientWidth-20);
+		canvas.height = user_image.height * canvas.width / user_image.width;
+	}
+}
 function isPowerOf2(value) {
   return (value & (value - 1)) == 0;
 }
@@ -463,6 +469,10 @@ function init() {
   invert.onchange = function() {
 	  if (refreshToggle.checked)
 				requestAnimationFrame(draw);
+  }
+  document.body.onresize = function() {
+	  setCanvasSize();
+	  requestAnimationFrame(draw);
   }
 }
 
