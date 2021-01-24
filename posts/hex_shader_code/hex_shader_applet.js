@@ -38,12 +38,12 @@ class SliderInput{
 };
 
 const minSize = new SliderInput("minSize",1.0,10.0);
-const steps = new SliderInput("steps",7);
+const steps = new SliderInput("steps",6);
 const maxSize = document.getElementById("maxSize");
-const lineWidth = new SliderInput("lineWidth",2.0,5.0);
-const lineFade = new SliderInput("lineFade",1.0,5.0);
-const gamma = new SliderInput("gamma",1.0,10.0);
-const gaussianBlur = new SliderInput("gaussianBlur",0);
+const lineWidth = new SliderInput("lineWidth",1.0,5.0);
+const lineFade = new SliderInput("lineFade",2.0,5.0);
+const gamma = new SliderInput("gamma",0.45,10.0);
+const gaussianBlur = new SliderInput("gaussianBlur",2);
 const color0 = document.getElementById("color0");
 const color1 = document.getElementById("color1");
 const control = document.getElementById("control");
@@ -57,6 +57,8 @@ var blur_buffer_0_texture = null;
 var blur_buffer_0_fb = null;
 var blur_buffer_1_texture = null;
 var blur_buffer_1_fb = null;
+var hex_texture = null;
+var hex_fb = null;
 var gl;
 main();
 
@@ -86,7 +88,7 @@ function create_frame_buffer(){
 	return {fb, texture};
 }
 
-function initializeBlurBuffers(){
+function initializeBlurAndHexBuffers(){
 	if (blur_buffer_0_texture != null){
 		gl.deleteTexture(blur_buffer_0_texture);
 		blur_buffer_0_texture = null;
@@ -109,6 +111,9 @@ function initializeBlurBuffers(){
 	let buffer_1 = create_frame_buffer();
 	blur_buffer_1_texture = buffer_1.texture;
 	blur_buffer_1_fb = buffer_1.fb;
+	let hex_buffer = create_frame_buffer();
+	hex_texture = hex_buffer.texture;
+	hex_fb = hex_buffer.fb;
 }
 
 function resetToDefaults() {
@@ -126,7 +131,7 @@ function resetToDefaults() {
 	refreshButton.style.display = "none";
 }
 
-function applyBlur(texture,fb,dimension,blur_radius){
+function applyBlur(texture,fb,dimension,blur_radius,width,height){
   gl.useProgram(blur_program);
   gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
   gl.clearColor(0.0,0.0,1.0,1.0);
@@ -144,7 +149,7 @@ function applyBlur(texture,fb,dimension,blur_radius){
   
   var positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  setRectangle(gl, 0, 0, user_image.width, user_image.height);
+  setRectangle(gl, 0, 0, width, height);
   // provide texture coordinates for the rectangle.
 	var texcoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
@@ -158,7 +163,7 @@ function applyBlur(texture,fb,dimension,blur_radius){
 	]), gl.STATIC_DRAW);
 	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_2D, texture);
-	gl.viewport(0,0,user_image.width,user_image.height);
+	gl.viewport(0,0,width,height);
     // Turn on the position attribute
 	gl.enableVertexAttribArray(positionLocation);
 
@@ -190,9 +195,9 @@ function applyBlur(texture,fb,dimension,blur_radius){
 	  texcoordLocation, size, type, normalize, stride, offset);
 
 	// set the resolution in vert
-	gl.uniform2f(resolutionLocation, user_image.width, user_image.height);
+	gl.uniform2f(resolutionLocation, width, height);
 	
-	gl.uniform2f(iResolutionLocation, user_image.width, user_image.height);
+	gl.uniform2f(iResolutionLocation, width, height);
 	gl.uniform1i(dimensionLocation, dimension);
 	gl.uniform1f(radiusLocation, blur_radius);
 	
@@ -225,8 +230,8 @@ function loadSourceTexture(gl, url) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
                   srcFormat, srcType, user_image);
-    canvas.width = user_image.width;
-    canvas.height = user_image.height;
+    canvas.width = Math.min(user_image.width,document.body.clientWidth-20);
+    canvas.height = user_image.height * canvas.width / user_image.width;
     // WebGL1 has different requirements for power of 2 images
     // vs non power of 2 images so check if the image is a
     // power of 2 in both dimensions.
@@ -240,7 +245,7 @@ function loadSourceTexture(gl, url) {
        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     }
-	initializeBlurBuffers();
+	initializeBlurAndHexBuffers();
     document.getElementById("widthxheight").innerHTML = String(user_image.width).concat("x").concat(String(user_image.height));
     requestAnimationFrame(draw);
   };
@@ -257,26 +262,40 @@ function isPowerOf2(value) {
 
 function saveImage() {
   if (canvas.width === 0) return;
-  draw();
+  drawHexes(applyBlurStack(),hex_fb);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,hex_fb);
+  var data = new Uint8Array(user_image.width * user_image.height * 4);
+  gl.readPixels(0, 0, user_image.width, user_image.height, gl.RGBA, gl.UNSIGNED_BYTE, data);
+  var temp_canvas = document.createElement('canvas');
+  temp_canvas.width = user_image.width;
+  temp_canvas.height = user_image.height;
+  var context = temp_canvas.getContext('2d');
+  var imageData = context.createImageData(temp_canvas.width, temp_canvas.height);
+  imageData.data.set(data);
+  context.putImageData(imageData,0,0);
   let downloadLink = document.createElement('a');
   downloadLink.setAttribute('download', 'hexed_image.png');
-  let dataURL = canvas.toDataURL('image/png');
+  let dataURL = temp_canvas.toDataURL('image/png');
   let url = dataURL.replace(/^data:image\/png/,'data:application/octet-stream');
   downloadLink.setAttribute('href', url);
   downloadLink.click();
 }
 
-function drawToCanvas() {
-	var blur_radius = Math.floor(gaussianBlur.value);
+function applyBlurStack() {
 	var source_tex;
+	var blur_radius = Math.floor(gaussianBlur.value);
 	if (blur_radius > 0){
-		applyBlur(user_image_tex,blur_buffer_0_fb,0,blur_radius);
-		applyBlur(blur_buffer_0_texture,blur_buffer_1_fb,1,blur_radius);
+		applyBlur(user_image_tex,blur_buffer_0_fb,0,blur_radius,user_image.width,user_image.height);
+		applyBlur(blur_buffer_0_texture,blur_buffer_1_fb,1,blur_radius,user_image.width,user_image.height);
 		source_tex = blur_buffer_1_texture;
 	}
 	else source_tex = user_image_tex;
+	return source_tex;
+}
+
+function drawHexes(source_tex,fb) {
+	gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
 	gl.useProgram(hex_program);
-	gl.bindFramebuffer(gl.FRAMEBUFFER,null);
 	// Set clear color to black, fully opaque
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 	// Clear the color buffer with specified clear color
@@ -291,7 +310,7 @@ function drawToCanvas() {
 	// Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 	// Set a rectangle the same size as the image.
-	setRectangle(gl, 0, 0, canvas.width, canvas.height);
+	setRectangle(gl, 0, 0, user_image.width, user_image.height);
 
 	// provide texture coordinates for the rectangle.
 	var texcoordBuffer = gl.createBuffer();
@@ -322,7 +341,7 @@ function drawToCanvas() {
 	var invertLocation = gl.getUniformLocation(hex_program, "invert");
 	var gammaLocation = gl.getUniformLocation(hex_program, "gamma");
 	// Tell WebGL how to convert from clip space to pixels
-	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+	gl.viewport(0, 0, user_image.width, user_image.height);
 	var uimageLocation = gl.getUniformLocation(hex_program, "u_image");
 	var uimage1Location = gl.getUniformLocation(hex_program, "u_image1");
 	// Turn on the position attribute
@@ -360,7 +379,7 @@ function drawToCanvas() {
 	gl.uniform1i(uimage1Location,1);
 
 	// set the resolution
-	gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
+	gl.uniform2f(resolutionLocation, user_image.width, user_image.height);
 	// set the image resolution
 	gl.uniform2f(iResolutionLocation, user_image.width, user_image.height);
 	//set the minimum hex side length
@@ -382,6 +401,14 @@ function drawToCanvas() {
 	var offset = 0;
 	var count = 6;
 	gl.drawArrays(primitiveType, offset, count);
+}
+
+function drawToCanvas() {
+	
+	var source_tex = applyBlurStack();
+	drawHexes(source_tex,hex_fb);
+	//we use applyBlur because I didn't want to write the empty shader lol
+	applyBlur(hex_texture,null,2,0,canvas.width,canvas.height);
 }
 
 function draw() {

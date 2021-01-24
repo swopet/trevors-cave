@@ -164,18 +164,20 @@ float getValue(vec2 p, float greyscale) {
 }
  
 void main() {
+   // Flip the texture vertically
+   vec2 v = vec2(v_texCoord.x,1.0 - v_texCoord.y);
    // Look up a color from the texture.
-   vec4 source_color = texture2D(u_image, v_texCoord);
+   vec4 source_color = texture2D(u_image, v);
    vec4 source_color_gamma = vec4(pow(source_color.x,gamma),pow(source_color.y,gamma),pow(source_color.z,gamma),source_color.w);
    float luminance = dot(source_color_gamma.xyz,vec3(0.22,0.71,0.07));
    float brightness = dot(source_color_gamma.xyz,vec3(0.3333,0.3333,0.3333));
    float greyscale = (control==0) ? luminance: brightness;
-   vec2 p = v_texCoord * iResolution;
+   vec2 p = v * iResolution;
    
    
    float val = getValue(p, greyscale);
-   vec4 col0 = (color0 == 0) ? vec4(0.0,0.0,0.0,1.0) : ((color0 == 1) ? vec4(1.0) : ((color0 == 2) ? source_color : texture2D(u_image1, v_texCoord)));
-   vec4 col1 = (color1 == 0) ? vec4(0.0,0.0,0.0,1.0) : ((color1 == 1) ? vec4(1.0) : ((color1 == 2) ? source_color : texture2D(u_image1, v_texCoord)));
+   vec4 col0 = (color0 == 0) ? vec4(0.0,0.0,0.0,1.0) : ((color0 == 1) ? vec4(1.0) : ((color0 == 2) ? source_color : texture2D(u_image1, v)));
+   vec4 col1 = (color1 == 0) ? vec4(0.0,0.0,0.0,1.0) : ((color1 == 1) ? vec4(1.0) : ((color1 == 2) ? source_color : texture2D(u_image1, v)));
    vec4 mixed_col = mix(col0,col1,smoothstep(lineWidth/2.0,lineWidth/2.0+lineFade,val));
    vec4 out_color = mixed_col;
    gl_FragColor = out_color;
