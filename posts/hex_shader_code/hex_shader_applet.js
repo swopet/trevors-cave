@@ -39,7 +39,6 @@ class SliderInput{
 
 const minSize = new SliderInput("minSize",1.0,10.0);
 const steps = new SliderInput("steps",6);
-const maxSize = document.getElementById("maxSize");
 const lineWidth = new SliderInput("lineWidth",1.0,5.0);
 const lineFade = new SliderInput("lineFade",2.0,5.0);
 const gamma = new SliderInput("gamma",0.45,10.0);
@@ -418,9 +417,6 @@ function drawToCanvas() {
 }
 
 function draw() {
-	  maxSize.innerHTML = (minSize.value * Math.pow(3.0,steps.value/2.0)).toFixed(0);
-	  
-      
       if (user_image_tex !== null)
 	  {
 		  drawToCanvas();
@@ -448,7 +444,7 @@ function init() {
   blur_program = webglUtils.createProgramFromScripts(gl, ["vertex-shader-2d", "blur-fragment-shader-2d"]);
   resetToDefaults();
   refreshToggle.oninput = function() {
-      refreshButton.style.display = refreshToggle.checked ? "none" : "block";
+      refreshButton.style.display = refreshToggle.checked ? "none" : "inline-block";
       if (refreshToggle.checked) requestAnimationFrame(draw);
   }
   refreshButton.onclick = function() {
