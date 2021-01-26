@@ -1,4 +1,7 @@
 <?php
+	function next_prev_posts(){
+		
+	}
 	class PostData{
 		public $date;
 		public $title;

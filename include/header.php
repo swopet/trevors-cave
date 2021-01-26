@@ -1,10 +1,13 @@
-<?php
-$title = "Trevor's Cave - " . $page_name;
-include_once($_SERVER['DOCUMENT_ROOT']."/../include/nav_bar.php")
-?>
-<html>
-<link rel="stylesheet" href="styles.css">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<title><?php echo $title; ?></title>
+<!--<link rel="stylesheet" href="styles.css">-->
+<link rel="stylesheet" href="bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="bootstrap.min.js"></script>
 </head>
 <body>
+<?php
+include_once($_SERVER['DOCUMENT_ROOT']."/../include/nav_bar.php");
+$title = "Trevor's Cave";
+?>
