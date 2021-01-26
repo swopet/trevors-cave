@@ -10,19 +10,24 @@
 	<div style="text-align:center" id="widthxheight"></div>
 	</div>
 
-	<?php 
+	<?php
+		function echoTooltip($tooltiptext=null,$use_html=false){
+			echo "<button type=\"button\" class=\"btn btn-info\" data-toggle=\"tooltip\" data-placement=\"top\""
+			.(($use_html) ? "data-html=\"true\"": "")
+			." title=\"".$tooltiptext."\">?</button>";
+		}
 		function echoSlider($title,$id_base,$min,$max,$ratio,$units,$tooltiptext=null){
 			echo "<div class=\"inputcontainer\">";
 			echo "<div class=\"inputlabel\">".$title."</div>";
 			echo "<input type=\"range\" min=\"".$min*$ratio."\" max=\"".$max*$ratio."\" class=\"slider\" id=\"".$id_base."Input\">";
 			echo "<input type=\"text\" id=\"".$id_base."Display\" class=\"sliderdisplay\"> ".$units;
 			if ($tooltiptext!=null){
-				echo "<div class=\"tooltip\">?<span class=\"tooltiptext\">".$tooltiptext."</span></div>";
+				echoTooltip($tooltiptext,true);
 			}
 			echo "</div>";
 		}
 		echoSlider("Minimum Side Length","minSize",0.1,50.0,10.0,"Pixels");
-		echoSlider("Number of Steps","steps",0,10.0,1.0,"Steps","Each step increases side length by a factor of sqrt(3)");
+		echoSlider("Number of Steps","steps",0,10.0,1.0,"Steps","Each step increases side length by a factor of &radic;3");
 		echoSlider("Line Width","lineWidth",0,20.0,5.0,"Pixels");
 		echoSlider("Line Fade","lineFade",0,20.0,5.0,"Pixels");
 		echoSlider("Gamma","gamma",0.1,4.0,10.0,"","Determines whether contrast is more visible in darker or brighter areas");
@@ -55,17 +60,17 @@
 			<option value=0>Luminance</option>
 			<option value=1>Brightness</option>
 		</select>
-		<div class="tooltip">?<span class="tooltiptext">Luminance: <a href="https://en.wikipedia.org/wiki/Relative_luminance" target="_blank">sRGB relative luminance</a><br>Brightness: RGB weighted equally</span></div>
+		<?php echoTooltip("Luminance: <a href='https://en.wikipedia.org/wiki/Relative_luminance' target='_blank'>sRGB relative luminance</a><br>Brightness: RGB weighted equally",true); ?>
 	</div>
 	<div class="inputcontainer">
 		<div class="inputlabel">Invert greyscale input</div>
 		<input type="checkbox" id="invert">
-		<div class="tooltip">?<span class="tooltiptext">Default: Dark=High Density Hexagons<br>Inverted: Light=High Density Hexagons<br>Swapping Color 0 and Color 1 is recommended when this is checked</span></div>
+		<?php echoTooltip("Default: Dark=Denser Hexagons<br>Inverted: Light=Denser Hexagons<br>Recommend swapping Color 0 and Color 1 if checked",true); ?>
 	</div>
 	<div class="inputcontainer">
 		<div class="inputlabel">Refresh on parameter change</div>
 		<input type="checkbox" id="refreshToggle">
-		<div class="tooltip">?<span class="tooltiptext">Recommend you uncheck this if you have limited graphics capabilities, or if you're using a large image.</span></div>
+		<?php echoTooltip("Recommend you uncheck this if you have limited graphics capabilities, or if you're using a large image",true); ?>
 		
 	</div>
 	<div class="inputcontainer">
@@ -76,10 +81,15 @@
 		</div>
 	</div>
 	<p>This is a fun tool I made that convolves a source image with a hex-grid density shader I wrote. Try loading an image, playing with the parameters and see what you come up with!</p>
-	<p>All the image processing is done in a few shaders in client-side WebGL, so don't worry about me stealing your images or anything. Writeup with explanation for how this works coming soon.</p>
+	<p>All the image processing is done in a few shaders in client-side WebGL, so don't worry about me stealing your images or anything. Writeup with a full explanation for how this works coming soon.</p>
 	<p>Many thanks to Red Blob Games for their <a href="https://www.redblobgames.com/grids/hexagons/" target="_blank"> write-up on axial coordinate systems</a>, without which this would have taken me ages to figure out.</p>
 </div>
 </body>
+<script>
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
 <?php
 	//Load shaders and javascript for the page
 	echo "<script  id=\"vertex-shader-2d\" type=\"notjs\">";

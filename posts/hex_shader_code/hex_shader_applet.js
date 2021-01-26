@@ -439,6 +439,7 @@ function setRectangle(gl, x, y, width, height) {
 }
 
 function init() {
+	
   gl = canvas.getContext("webgl");
   hex_program = webglUtils.createProgramFromScripts(gl, ["vertex-shader-2d", "hex-fragment-shader-2d"]);
   blur_program = webglUtils.createProgramFromScripts(gl, ["vertex-shader-2d", "blur-fragment-shader-2d"]);
