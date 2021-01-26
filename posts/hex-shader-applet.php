@@ -75,7 +75,7 @@
 		<button onclick="saveImage()">Save Image</button>
 		</div>
 	</div>
-	<p>This is a fun tool I made to generate hex-grid density images based on a source image. Try loading an image, playing with the parameters and see what you come up with!</p>
+	<p>This is a fun tool I made that convolves a source image with a hex-grid density shader I wrote. Try loading an image, playing with the parameters and see what you come up with!</p>
 	<p>All the image processing is done in a few shaders in client-side WebGL, so don't worry about me stealing your images or anything. Writeup with explanation for how this works coming soon.</p>
 	<p>Many thanks to Red Blob Games for their <a href="https://www.redblobgames.com/grids/hexagons/" target="_blank"> write-up on axial coordinate systems</a>, without which this would have taken me ages to figure out.</p>
 </div>
