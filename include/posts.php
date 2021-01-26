@@ -5,11 +5,11 @@
 		echo "<div class='row'>";
 		if ($index != count($post_keys) - 1){
 			$previous_post_name = $post_keys[$index+1];
-			echo "<div class='col-sm text-center'>Previous Post: <a href=\"?p=" . $previous_post_name . "\">" . $posts[$previous_post_name]->title . "</a></div>";
+			echo "<div class='col-sm text-center'>Previous Post: <a href='?p=" . $previous_post_name . "'>" . $posts[$previous_post_name]->title . "</a></div>";
 		}
 		if ($index != 0){
 			$next_post_name = $post_keys[$index-1];
-			echo "<div class='col-sm text-center'>Next Post: <a href=\"?p=" . $next_post_name . "\">" . $posts[$next_post_name]->title . "</a></div>";
+			echo "<div class='col-sm text-center'>Next Post: <a href='?p=" . $next_post_name . "'>" . $posts[$next_post_name]->title . "</a></div>";
 		}
 		echo "</div>";
 		echo "</div>";
@@ -63,17 +63,20 @@
 		}
 	}
 	if ($list_posts){
+		echo "<div class='postcontainer'>";
+		echo "<h2 class='text-center'>Posts</h2>";
 		for($i = $posts_page * 5; $i < min(count($post_keys),($posts_page+1)*5); $i++){
 			$post_name = $post_keys[$i];
 			$post_data = $posts[$post_name];
-			echo "<p>" . date("l jS \of F Y",$post_data->date) . ": <a href=\"?p=" . $post_name . "\">" . $post_data->title . "</a></p>";
+			echo "<p>" . date("l jS \of F Y",$post_data->date) . ": <a href='?p=" . $post_name . "'>" . $post_data->title . "</a></p>";
 		}
 		if ($posts_page > 0){
-			echo "<p><a href=\"?pg=".($posts_page-1)."\">Newer Posts</a></p>";
+			echo "<p><a href='?pg=".($posts_page-1)."'>Newer Posts</a></p>";
 		}
 		$pages_count = (int)(count($post_keys)/5);
 		if ($posts_page < $pages_count){
-			echo "<p><a href=\"?pg=".($posts_page+1)."\">Older Posts</a></p>";
+			echo "<p><a href='?pg=".($posts_page+1)."'>Older Posts</a></p>";
 		}
+		echo "</div>";
 	}
 ?>

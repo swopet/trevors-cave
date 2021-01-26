@@ -12,15 +12,15 @@
 
 	<?php
 		function echoTooltip($tooltiptext=null,$use_html=false){
-			echo "<button type=\"button\" class=\"btn btn-info\" data-toggle=\"tooltip\" data-placement=\"top\""
-			.(($use_html) ? "data-html=\"true\"": "")
-			." title=\"".$tooltiptext."\">?</button>";
+			echo "<button type='button' class='btn btn-sm btn-info' data-toggle='tooltip' data-placement='top'"
+			.(($use_html) ? "data-html='true'": "")
+			." title='".$tooltiptext."'>?</button>";
 		}
 		function echoSlider($title,$id_base,$min,$max,$ratio,$units,$tooltiptext=null){
-			echo "<div class=\"inputcontainer\">";
-			echo "<div class=\"inputlabel\">".$title."</div>";
-			echo "<input type=\"range\" min=\"".$min*$ratio."\" max=\"".$max*$ratio."\" class=\"slider\" id=\"".$id_base."Input\">";
-			echo "<input type=\"text\" id=\"".$id_base."Display\" class=\"sliderdisplay\"> ".$units;
+			echo "<div class='inputcontainer'>";
+			echo "<div class='inputlabel'>".$title."</div>";
+			echo "<input type='range' min='".$min*$ratio."' max='".$max*$ratio."' class='slider' id='".$id_base."Input'>";
+			echo "<input type='text' id='".$id_base."Display' class='sliderdisplay'> ".$units;
 			if ($tooltiptext!=null){
 				echoTooltip($tooltiptext,true);
 			}
@@ -60,7 +60,7 @@
 			<option value=0>Luminance</option>
 			<option value=1>Brightness</option>
 		</select>
-		<?php echoTooltip("Luminance: <a href='https://en.wikipedia.org/wiki/Relative_luminance' target='_blank'>sRGB relative luminance</a><br>Brightness: RGB weighted equally",true); ?>
+		<?php echoTooltip("Luminance: <a href=\"https://en.wikipedia.org/wiki/Relative_luminance\" target=\"_blank\">sRGB relative luminance</a><br>Brightness: RGB weighted equally",true); ?>
 	</div>
 	<div class="inputcontainer">
 		<div class="inputlabel">Invert greyscale input</div>
@@ -92,13 +92,13 @@ $(function () {
 </script>
 <?php
 	//Load shaders and javascript for the page
-	echo "<script  id=\"vertex-shader-2d\" type=\"notjs\">";
+	echo "<script  id='vertex-shader-2d' type='notjs'>";
 	include_once($_SERVER['DOCUMENT_ROOT']."/../posts/hex_shader_code/vert_shader.txt");
 	echo "</script>";
-	echo "<script id=\"hex-fragment-shader-2d\" type=\"x-shader/x-fragment\">";
+	echo "<script id='hex-fragment-shader-2d' type='x-shader/x-fragment'>";
 	include_once($_SERVER['DOCUMENT_ROOT']."/../posts/hex_shader_code/hex_frag_shader.txt");
 	echo "</script>";
-	echo "<script id=\"blur-fragment-shader-2d\" type=\"x-shader/x-fragment\">";
+	echo "<script id='blur-fragment-shader-2d' type='x-shader/x-fragment'>";
 	include_once($_SERVER['DOCUMENT_ROOT']."/../posts/hex_shader_code/gaussian_blur_shader.txt");
 	echo "</script>";
 	echo "<script>";

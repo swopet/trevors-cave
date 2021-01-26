@@ -128,6 +128,7 @@ function resetToDefaults() {
     invert.checked = false;
 	refreshToggle.checked = true;
 	refreshButton.style.display = "none";
+	requestAnimationFrame(draw);
 }
 
 function applyBlur(texture,fb,dimension,blur_radius,width,height){
