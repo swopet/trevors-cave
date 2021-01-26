@@ -1,6 +1,18 @@
 <?php
-	function next_prev_posts(){
-		
+	function next_prev_posts($index,$post_keys,$posts){
+		if ($index === null) return;
+		echo "<div class='container'>";
+		echo "<div class='row'>";
+		if ($index != count($post_keys) - 1){
+			$previous_post_name = $post_keys[$index+1];
+			echo "<div class='col-sm text-center'>Previous Post: <a href=\"?p=" . $previous_post_name . "\">" . $posts[$previous_post_name]->title . "</a></div>";
+		}
+		if ($index != 0){
+			$next_post_name = $post_keys[$index-1];
+			echo "<div class='col-sm text-center'>Next Post: <a href=\"?p=" . $next_post_name . "\">" . $posts[$next_post_name]->title . "</a></div>";
+		}
+		echo "</div>";
+		echo "</div>";
 	}
 	class PostData{
 		public $date;
@@ -35,19 +47,12 @@
 		$post_name = $_GET["p"];
 		$post_data = $posts[$post_name];
 		if ($post_data != null){
-			echo "<p>" . $post_data->title . ": " . date("l jS \of F Y",$posts[$post_name]->date) . "</p>";
+			echo "<h3 class='text-center'>" . $post_data->title . "</h3><h4 class='text-center'>" . date("F jS, Y",$posts[$post_name]->date) . "</h4>";
+			$index = array_search($post_name,$post_keys);
+			next_prev_posts($index,$post_keys,$posts);
 			if (@include($_SERVER['DOCUMENT_ROOT']."/../posts/".$post_name.".php")){
-				
 				$list_posts = false;
-				$index = array_search($post_name,$post_keys);
-				if ($index != 0){
-					$next_post_name = $post_keys[$index-1];
-					echo "<p>Next Post: <a href=\"?p=" . $next_post_name . "\">" . $posts[$next_post_name]->title . "</a></p>";
-				}
-				if ($index != count($post_keys) - 1){
-					$previous_post_name = $post_keys[$index+1];
-					echo "<p>Previous Post: <a href=\"?p=" . $previous_post_name . "\">" . $posts[$previous_post_name]->title . "</a></p>";
-				}
+				next_prev_posts($index,$post_keys,$posts);
 			}
 			else {
 				echo "<p>" . $post_name . " in database, but no corresponding file!</p>";

@@ -1,10 +1,16 @@
 * {
-	font-size: 100%;
 	font-family: Arial, sans-serif;
 }
 
 body {
     background-color: white;
+	padding-bottom: 70px;
+}
+
+.video {
+  width:560px;
+  height:315px;
+  margin: auto;
 }
 
 .tooltip {
@@ -68,30 +74,73 @@ body {
 .inputcontainer {
 	margin:auto;
 	width:50%;
-	
+	padding-bottom:2px;
 }
 
 .inputcontainer .inputlabel {
 	display: inline-block;
 	text-align: right;
+	padding-right: 5px;
 	width:30%;
+}
+
+.inputcontainer .select {
+	display: inline-block;
+	width:20%;
+	padding-left: 5px;
+	padding-right: 5px;
+	margin-left:0;
+	margin-right:0;
+	overflow: auto;
 }
 
 .inputcontainer .slider {
 	display: inline-block;
 	width:40%;
+	opacity:0.7;
+	-webkit-appearance: none;
+	height: 25px;
+	background: #b3b3b3;
+	outline: none;
+	opacity: 0.7;
+	-webkit-transition: .2s;
+	transition: opacity .2s;
+	vertical-align: middle;
+	border-radius: 5px;
+}
+
+.inputcontainer .slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background: #4CAF50;
+  cursor: pointer;
+  border-radius:5px;
+}
+
+.inputcontainer .slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  background: #4CAF50;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.inputcontainer .slider:hover {
+	opacity:1.0;
 }
 
 .inputcontainer .sliderdisplay {
 	display: inline-block;
 	width:3em;
+	height: 100%;
+	margin-top:0;
+	margin-bottom:0;
 }
 
-@media only screen and (max-width: 600px) {
-	body {
-	    font-size: 18px;
-	}
-	.slidercontainer {
+@media only screen and (max-width: 800px) {
+	.inputcontainer {
 		width:100%;
 	}
 }

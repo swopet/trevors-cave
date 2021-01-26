@@ -30,25 +30,27 @@
 
 <div class="inputcontainer">
     <div class="inputlabel">Color 0</div>
-    <select name="color0" id="color0">
+    <select class="inputselect" name="color0" id="color0">
         <option value=0>Black</option>
         <option value=1>White</option>
         <option value=2>Source Color</option>
 		<option value=3>Original Color (no blur)</option>
     </select>
+	
 </div>
 <div class="inputcontainer">
-   <div class="inputlabel">Color 1</div>
-    <select name="color1" id="color1">
+    <div class="inputlabel">Color 1</div>
+    <select class="inputselect" name="color1" id="color1">
         <option value=0>Black</option>
         <option value=1>White</option>
         <option value=2>Source Color</option>
 		<option value=3>Original Color (no blur)</option>
     </select>
+	
 </div>
 <div class="inputcontainer">
     <div class="inputlabel">Greyscale Calc</div>
-    <select name="control" id="control">
+    <select class="inputselect" name="greyscale" id="control">
         <option value=0>Luminance</option>
         <option value=1>Brightness</option>
     </select>
