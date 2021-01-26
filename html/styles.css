@@ -60,7 +60,7 @@ body {
 .canvascontainer {
 	margin-left: auto;
 	margin-right: auto;
-	width:100%;
+	width:50%;
 }
 
 .shadercanvas {
@@ -73,7 +73,7 @@ body {
 
 .inputcontainer {
 	margin:auto;
-	width:50%;
+	width:100%;
 	padding-bottom:2px;
 }
 
@@ -139,8 +139,19 @@ body {
 	margin-bottom:0;
 }
 
+.postcontainer {
+	width: 50%;
+	margin: auto;
+}
+
 @media only screen and (max-width: 800px) {
-	.inputcontainer {
+	.postcontainer {
 		width:100%;
+	}
+}
+
+@media only screen and (max-width: 1080px) {
+	.postcontainer {
+		width:75%;
 	}
 }
