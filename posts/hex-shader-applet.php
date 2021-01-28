@@ -80,9 +80,41 @@
 		<button onclick="saveImage()">Save Image</button>
 		</div>
 	</div>
-	<p>This is a fun tool I made that convolves a source image with a hex-grid density shader I wrote. Try loading an image, playing with the parameters and see what you come up with!</p>
-	<p>All the image processing is done in a few shaders in client-side WebGL, so don't worry about me stealing your images or anything. Writeup with a full explanation for how this works coming soon.</p>
-	<p>Many thanks to Red Blob Games for their <a href="https://www.redblobgames.com/grids/hexagons/" target="_blank"> write-up on axial coordinate systems</a>, without which this would have taken me ages to figure out.</p>
+	<p>This is a fun tool I made that convolves a source image with a hex-grid density shader I wrote. Try loading an image, playing with the parameters and see what you come up with! All the image processing is done in a few shaders in client-side WebGL, so don't worry about me stealing your images or anything.</p>
+	<h3>Explanation</h3>
+	<h4>Tesselation</h4>
+	<p>To break down a hexagon grid to a tesselating pattern, I draw, on each hexagon on the grid, a line from every other vertex to the center.</p>
+	<figure>
+		<img src="images/hex_tesselation.gif" class="figure-img img-fluid" alt="A GIF shows how lines are drawn from the center of each hexagon to every other corner.">
+		<figcaption class="figure-caption">Basic hexagon tesselation</figcaption>
+	</figure>
+	<h4>Density Transition</h4>
+	<p>To transition from one density level to the next, each hexagon vertex where three lines meet expands to form a hexagon. At the same time, each line splits to two other lines, which rotate away from each other. When the transformation is complete, the resulting hexagon grid has smaller side length by a factor of &radic;3</p>
+	<figure>
+		<img src="images/hex_tesselation_split_step_1.gif" class="figure-img img-fluid" alt="A GIF shows how one hexagon grid is transformed into a denser hexagon grid.">
+		<figcaption class="figure-caption">Hexagon tesselation transitions 1 (one) step of density</figcaption>
+	</figure>
+	<h4>Steps</h4>
+	<p>For a given pixel, we index to the step of density required by the input greyscale value, performing the necessary transformations to position it correctly relative to the previous step of density. The "Steps" parameter controls the number of steps through which the filter passes on its way from its lowest density to its highest density.</p>
+	<figure>
+		<img src="images/hex_tesselation_split_step_4.gif" class="figure-img img-fluid" alt="A GIF shows how one hexagon grid is transformed stepwise over 4 steps of density.">
+		<figcaption class="figure-caption">Hexagon tesselation transitions through 4 (four) steps of density</figcaption>
+	</figure>
+	<h4>Blur</h4>
+	<p>Since the convolution is 'continuous' (not in a strict mathematical sense), we get smooth transitions across input values. However, most source images are not necessarily smooth pixel-to-pixel. It's a stylistic choice, but applying a Gaussian blur to the image prior to convolving it with the hexagon density function gets rid of most pixelation of the source image. However, sometimes it can look better to include those artifacts, or keep the blur radius small.</p>
+	<figure>
+		<img src="images/hex_tesselation_blur.gif" class="figure-img img-fluid" alt="A GIF shows how blurring the source image smooths out the density transitions.">
+		<figcaption class="figure-caption">Increased blur smooths out density transitions</figcaption>
+	</figure>
+	<h4>Gamma</h4>
+	<p>Raising the incoming greyscale value (normalized from 0 to 1) to some gamma value gives us control over whether contrast is highlighted more on dark parts or light parts of the image.</p>
+	<figure>
+		<img src="images/hex_tesselation_gamma.gif" class="figure-img img-fluid" alt="A GIF shows how applying an exponentation to the source value changes contrast behavior.">
+		<figcaption class="figure-caption">Gamma changes from 0.45 to 1.65</figcaption>
+	</figure>
+	<h4>Appearance</h4>
+	<p>Finally, I added controls to invert the incoming greyscale value, swap which colors are used for the lines and hexagons, and change the thickness and width of the lines. These parameters should be relatively self-explanatory as soon as you play with the sliders :)</p>
+	<p>Many thanks to Red Blob Games for their <a href="https://www.redblobgames.com/grids/hexagons/" target="_blank"> write-up on axial coordinate systems</a>, without which this whole thing would have taken me ages to figure out. Thanks also to <a href="https://webglfundamentals.org/" target="_blank">WebGLFundamentals</a> for their tutorials on using WebGL. Great for anyone with experience in OpenGL like me, or really anyone interested in in-browser rendering with WebGL.</p>
 </div>
 </body>
 <script>
