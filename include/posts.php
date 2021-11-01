@@ -25,7 +25,8 @@
 	$posts = array(
 		"symbio-ink-waltz" => new PostData('4th April 2020',"Symbio Ink Waltz"),
 		"nov-21-piano" => new PostData('21st November 2020',"Foggy Afternoon Piano"),
-		"hex-shader-applet" => new PostData('21st January 2021',"Hex Shader")
+		"hex-shader-applet" => new PostData('21st January 2021',"Hex Shader"),
+        "corkboard" => new PostData('20 June 2021',"Corkboard")
 	);
 	function post_compare($postkey1,$postkey2){
 		global $posts;
