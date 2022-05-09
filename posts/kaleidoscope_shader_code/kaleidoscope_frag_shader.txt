@@ -1,0 +1,55 @@
+precision mediump float;
+
+uniform vec2 iResolution;
+uniform vec2 oResolution;
+// our texture
+uniform sampler2D u_image;
+
+uniform vec2 center;
+uniform vec2 origin;
+uniform float rotation; //degrees
+uniform float reflections;
+uniform float zoom;
+
+#define PI 3.14159265359
+
+// the texCoords passed in from the vertex shader.
+varying vec2 v_texCoord;
+
+vec2 cis(float theta){
+   return vec2(cos(theta),sin(theta));
+}
+
+// improved bilinear interpolated texture fetch by inigo quilez, see https://iquilezles.org/articles/hwinterpolation/
+vec4 bilinearSample(sampler2D sam, vec2 uv )
+{
+    vec2 res = iResolution;
+
+    vec2 st = uv*res - 0.5;
+
+    vec2 iuv = floor( st );
+    vec2 fuv = fract( st );
+
+    vec4 a = texture2D( sam, (iuv+vec2(0.5,0.5))/res );
+    vec4 b = texture2D( sam, (iuv+vec2(1.5,0.5))/res );
+    vec4 c = texture2D( sam, (iuv+vec2(0.5,1.5))/res );
+    vec4 d = texture2D( sam, (iuv+vec2(1.5,1.5))/res );
+
+    return mix( mix( a, b, fuv.x),
+                mix( c, d, fuv.x), fuv.y );
+}
+ 
+void main() {
+   // Flip the texture vertically
+   vec2 v = vec2(v_texCoord.x,1.0 - v_texCoord.y);
+   vec2 p = v - center;
+   p = p  * vec2(oResolution.x / iResolution.x, oResolution.y / iResolution.y);
+   float p_angle = atan(p.y,p.x);
+   float p_dist = length(p);
+   float reflected_angle = min(mod(p_angle,2.0*PI/reflections),2.0*PI/reflections-mod(p_angle,2.0*PI/reflections)) + rotation * PI / 180.0;
+   vec2 sample_v = origin + p_dist / zoom * cis(reflected_angle);
+   sample_v = min(mod(sample_v,2.0),2.0 - mod(sample_v,2.0));
+   // Look up a color from the texture.
+   vec4 source_color = bilinearSample(u_image, sample_v);
+   gl_FragColor = source_color;
+}
