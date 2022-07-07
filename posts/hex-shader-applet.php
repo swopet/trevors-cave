@@ -70,7 +70,7 @@
 	<div class="inputcontainer">
 		<div class="inputlabel">Refresh on parameter change</div>
 		<input type="checkbox" id="refreshToggle">
-		<?php echoTooltip("Recommend you uncheck this if you have limited graphics capabilities, or if you're using a large image",true); ?>
+		<?php echoTooltip("Recommend you uncheck this if you have limited graphics capabilities, or if you are using a large image",true); ?>
 		
 	</div>
 	<div class="inputcontainer">
@@ -80,7 +80,7 @@
 		<button onclick="saveImage()">Save Image</button>
 		</div>
 	</div>
-	<p>This is a fun tool I made that convolves a source image with a hex-grid density shader I wrote. Try loading an image, playing with the parameters and see what you come up with! All the image processing is done in a few shaders in client-side WebGL, so don't worry about me stealing your images or anything.</p>
+	<p>This is a fun tool I made that convolves a source image with a hex-grid dithering shader I wrote. Try loading an image, playing with the parameters and see what you come up with! All the image processing is done in a few shaders in client-side WebGL, so don't worry about me stealing your images or anything.</p>
 	<h3>Explanation</h3>
 	<h4>Tesselation</h4>
 	<p>To break down a hexagon grid to a tesselating pattern, I draw, on each hexagon on the grid, a line from every other vertex to the center.</p>

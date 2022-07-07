@@ -50,7 +50,7 @@
 	<div class="inputcontainer">
 		<div class="inputlabel">Refresh on parameter change</div>
 		<input type="checkbox" id="refreshToggle">
-		<?php echoTooltip("Recommend you uncheck this if you have limited graphics capabilities, or if you're using a large image",true); ?>
+		<?php echoTooltip("Recommend you uncheck this if you have limited graphics capabilities, or if you are using a large image",true); ?>
 		
 	</div>
 	<div class="inputcontainer">

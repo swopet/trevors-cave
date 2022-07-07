@@ -37,12 +37,12 @@ class SliderInput{
     }
 };
 
-const minSize = new SliderInput("minSize",1.0,10.0);
+const minSize = new SliderInput("minSize",6.0,10.0);
 const steps = new SliderInput("steps",6);
-const lineWidth = new SliderInput("lineWidth",1.0,5.0);
-const lineFade = new SliderInput("lineFade",2.0,5.0);
-const gamma = new SliderInput("gamma",0.45,10.0);
-const gaussianBlur = new SliderInput("gaussianBlur",2);
+const lineWidth = new SliderInput("lineWidth",2.0,5.0);
+const lineFade = new SliderInput("lineFade",12.0,5.0);
+const gamma = new SliderInput("gamma",1.0,10.0);
+const gaussianBlur = new SliderInput("gaussianBlur",5);
 const color0 = document.getElementById("color0");
 const color1 = document.getElementById("color1");
 const control = document.getElementById("control");
@@ -122,10 +122,10 @@ function resetToDefaults() {
     lineFade.reset();
 	gamma.reset();
 	gaussianBlur.reset();
-    color0.value = 0;
-    color1.value = 1;
-    control.value = 0;
-    invert.checked = false;
+    color0.value = 3;
+    color1.value = 0;
+    control.value = 1;
+    invert.checked = true;
 	refreshToggle.checked = true;
 	refreshButton.style.display = "none";
 	requestAnimationFrame(draw);
@@ -482,6 +482,7 @@ function main() {
     const fileList = event.target.files;
     readImage(event.target.files[0],user_image);
   });
+  user_image_tex = loadSourceTexture(gl,"../images/meadow.jpg");
   
   
 

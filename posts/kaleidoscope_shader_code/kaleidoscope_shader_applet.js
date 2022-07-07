@@ -41,15 +41,15 @@ class SliderInput{
     }
 };
 
-const outResolutionX = new SliderInput("resolutionX",640);
-const outResolutionY = new SliderInput("resolutionY",480);
-const originX = new SliderInput("originX",0.5,1000.0);
-const originY = new SliderInput("originY",0.5,1000.0);
+const outResolutionX = new SliderInput("resolutionX",1280);
+const outResolutionY = new SliderInput("resolutionY",960);
+const originX = new SliderInput("originX",0.75,1000.0);
+const originY = new SliderInput("originY",0.75,1000.0);
 const centerX = new SliderInput("centerX",0.5,1000.0);
 const centerY = new SliderInput("centerY",0.5,1000.0);
 const zoom = new SliderInput("zoom",1.0,10.0);
-const reflections = new SliderInput("reflections",3);
-const rotation = new SliderInput("rotation",0);
+const reflections = new SliderInput("reflections",5);
+const rotation = new SliderInput("rotation",45);
 const refreshToggle = document.getElementById("refreshToggle");
 const refreshButton = document.getElementById("refreshButton");
 var kaleidoscope_program;
@@ -337,7 +337,7 @@ function main() {
     const fileList = event.target.files;
     readImage(event.target.files[0],user_image);
   });
-  
+  user_image_tex = loadSourceTexture(gl,"../images/meadow.jpg");
   
 
   // Only continue if WebGL is available and working
