@@ -27,7 +27,7 @@
 		"nov-21-piano" => new PostData('21st November 2020',"Foggy Afternoon Piano"),
 		"hex-shader-applet" => new PostData('21st January 2021',"Hex Shader"),
         "corkboard" => new PostData('20th June 2021',"Corkboard"),
-        "kaleidoscope-applet" => new PostData('10th May 2022',"Kaleidoscope Shader")
+        "kaleidoscope-applet" => new PostData('24th July 2022',"Kaleidoscoper Applet")
 	);
 	function post_compare($postkey1,$postkey2){
 		global $posts;
